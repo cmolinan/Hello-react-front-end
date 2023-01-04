@@ -12,7 +12,7 @@ function Greeting() {
   return (
     <div>
       <div>
-        {message.message}
+        <h1>{message.message}</h1>
       </div>
       <button type="button" onClick={Click}>Read Greeting</button>
     </div>
