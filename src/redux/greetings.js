@@ -1,38 +1,41 @@
-/* eslint-disable */
+/* eslint-disable no-param-reassign */
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import axios from 'axios';
+
 const initialState = {
-  message: {},
+  loading: false,
+  message: '',
+  error: '',
 };
 
-const messageReducer = (state = initialState, action) => {
-  switch (action.type) {
-    case 'fetch':
-      return {
-        ...state,
-        loaded: true,
-      };
-    case 'complete':
-      return {
-        ...state,
-        loaded: false,
-        message: action.payload,
-      };
-    default:
-      return state;
-  }
-};
+export const fetchmessage = createAsyncThunk('greetings/fetchmessage', () => axios.get('http://localhost:3000/api/v1/greetings')
+  .then((response) => {
+    const { data } = response;
+    return data.message;
+  }));
 
-export const fetchmessage = () => async (dispatch) => {
-  dispatch({ type: 'fetch' });
-  await fetch('http://localhost:3000/api/v1/greetings', {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      dispatch({ type: 'complete', payload: data.message });
-    })
-    .catch(() => dispatch({ type: 'fetch' }));
-};
+const reducerGreetings = createSlice({
+  name: 'greetings',
+  initialState,
 
-export default messageReducer;
+  extraReducers: (builder) => {
+    builder.addCase(fetchmessage.pending, (state) => {
+      state.loading = true;
+    });
+
+    builder.addCase(fetchmessage.fulfilled, (state, action) => {
+      state.loading = false;
+      state.message = action.payload;
+      state.error = '';
+    });
+
+    builder.addCase(fetchmessage.rejected, (state, action) => {
+      state.loading = false;
+      state.message = '';
+      state.error = action.error.message;
+    });
+  },
+});
+
+export const { getGreeting } = reducerGreetings.actions;
+export default reducerGreetings.reducer;
